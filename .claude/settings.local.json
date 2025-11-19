@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash('c:\\Users\\DamienNOBLET\\AppData\\Local\\Programs\\Python\\Python313\\python.exe' marstek_udp_client_all_v3.py get-soc)",
+      "Bash('c:\\Users\\DamienNOBLET\\AppData\\Local\\Programs\\Python\\Python313\\python.exe' marstek_udp_client_all_v3.py get-mode)",
+      "Bash('c:\\Users\\DamienNOBLET\\AppData\\Local\\Programs\\Python\\Python313\\python.exe' marstek_udp_client_all_v3.py get-bat-temp)",
+      "Bash('c:\\Users\\DamienNOBLET\\AppData\\Local\\Programs\\Python\\Python313\\python.exe' marstek_udp_client_all_v3.py get-total-power)",
+      "Bash(c:UsersDamienNOBLETAppDataLocalProgramsPythonPython313python.exe marstek_udp_client_all_v3.py --help)",
+      "Bash('c:\\Users\\DamienNOBLET\\AppData\\Local\\Programs\\Python\\Python313\\python.exe' marstek_udp_client_all_v3.py --timeout 2.0 get-mode)",
+      "Bash('c:\\Users\\DamienNOBLET\\AppData\\Local\\Programs\\Python\\Python313\\python.exe' marstek_udp_client_all_v3.py --command-retries 5 set-es-mode Manual --power -850 --start-time \"01:00\" --end-time \"05:45\" --week-set 127)",
+      "Bash('c:\\Users\\DamienNOBLET\\AppData\\Local\\Programs\\Python\\Python313\\python.exe' marstek_udp_client_all_v3.py --timeout 3.0 get-mode)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
