@@ -575,5 +575,7 @@ Si les commandes (GET ou SET) échouent même après retry automatique :
 ## Licence
 
 Ce script est fourni tel quel pour usage personnel et éducatif.
-#   M a r s t e k V e n u s E 3 . 0 _ F o r _ J e e d o m  
- 
+
+## Crédits
+
+Ce script est largement inspiré du travail de slanckma : https://gist.github.com/slanckma/b94a6d77b81104ae441b217a669e55d7

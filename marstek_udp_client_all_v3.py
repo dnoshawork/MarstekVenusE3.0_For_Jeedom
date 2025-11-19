@@ -5,6 +5,8 @@ Marstek UDP JSON client simplifié pour Jeedom.
 
 Ce script exécute une commande unique (par défaut: all-status) et n'affiche
 que la réponse JSON finale pour une intégration facile dans Jeedom.
+
+Largement inspiré de: https://gist.github.com/slanckma/b94a6d77b81104ae441b217a669e55d7
 """
 
 import argparse
