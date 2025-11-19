@@ -220,9 +220,12 @@ python marstek_udp_client_all_v3.py set-es-mode Passive
 --retries RETRIES          # Nombre de tentatives réseau (défaut: 2)
 --command-retries RETRIES  # Nombre de tentatives pour set-es-mode avec délai progressif (défaut: 3)
 --bind BIND                # Bind local ip:port (ex: 0.0.0.0:30000)
+--verbose                  # Affiche les messages de retry (désactivé par défaut pour Jeedom)
 ```
 
-**Note sur --command-retries :** Pour fiabiliser l'envoi des commandes `set-es-mode`, le script réessaie automatiquement jusqu'à 3 fois avec des délais progressifs (2s, 4s, 8s) en cas d'échec. Vous pouvez ajuster ce nombre avec `--command-retries`.
+**Notes importantes :**
+- **--command-retries :** Pour fiabiliser l'envoi des commandes `set-es-mode`, le script réessaie automatiquement jusqu'à 3 fois avec des délais progressifs (2s, 4s, 8s) en cas d'échec. Vous pouvez ajuster ce nombre avec `--command-retries`.
+- **--verbose :** Par défaut, les messages de retry sont **masqués** pour ne pas polluer la sortie JSON dans Jeedom. Activez cette option uniquement pour le débogage ou les tests manuels.
 
 ### Exemples d'utilisation avancés
 
@@ -240,7 +243,13 @@ python marstek_udp_client_all_v3.py --bind 0.0.0.0:30001 all-status
 
 # Augmenter le nombre de tentatives pour set-es-mode (en cas de réseau instable)
 python marstek_udp_client_all_v3.py --command-retries 5 set-es-mode Manual --power -2000 --start-time "22:00" --end-time "06:00" --week-set 127
+
+# Activer le mode verbose pour le débogage (affiche les retry sur stderr)
+python marstek_udp_client_all_v3.py --verbose get-mode
+python marstek_udp_client_all_v3.py --verbose --command-retries 5 set-es-mode Auto
 ```
+
+**Note :** Le mode `--verbose` affiche les messages de retry sur **stderr** (erreur standard), ce qui permet de les distinguer de la sortie JSON sur **stdout**. Ceci est utile pour le débogage sans impacter Jeedom.
 
 #### Scénarios d'utilisation du mode Manual
 

@@ -17,8 +17,8 @@ import sys
 import time
 from typing import Optional, Tuple, List, Any
 
-# Suppression du logging pour ne pas polluer la sortie JSON
-logging.basicConfig(level=logging.WARNING) 
+# Logging désactivé par défaut pour ne pas polluer la sortie JSON (activable avec --verbose)
+logging.basicConfig(level=logging.CRITICAL) 
 
 DEFAULT_IP = "192.168.0.182"
 DEFAULT_PORT = 30000
@@ -94,7 +94,8 @@ def execute_with_retry(
     max_retries: int = 3,
     base_delay: float = 1.0,
     base_timeout: float = None,
-    validation_func=None
+    validation_func=None,
+    verbose: bool = False
 ) -> Any:
     """
     Execute an operation with intelligent retry, progressive delay, and progressive timeout.
@@ -106,6 +107,7 @@ def execute_with_retry(
         base_delay: Base delay in seconds (will be doubled each attempt)
         base_timeout: Base timeout for operation (will be doubled each attempt). If None, timeout not modified.
         validation_func: Optional function to validate the result (returns True if valid)
+        verbose: If True, display retry warnings
 
     Returns:
         Result from operation_func if successful
@@ -116,8 +118,8 @@ def execute_with_retry(
             current_timeout = None
             if base_timeout is not None:
                 current_timeout = base_timeout + (1.0 * attempt)
-                if attempt > 0:
-                    logging.info(f"{operation_name} attempt {attempt + 1} using increased timeout: {current_timeout}s")
+                if attempt > 0 and verbose:
+                    print(f"INFO: {operation_name} attempt {attempt + 1} using increased timeout: {current_timeout}s", file=sys.stderr)
 
             # Exécuter l'opération avec timeout progressif si supporté
             result = operation_func(current_timeout) if base_timeout is not None else operation_func()
@@ -133,10 +135,12 @@ def execute_with_retry(
                             error_msg = first_result['error'].get('message', 'Unknown error')
                             # Parse error (-32700) ou autres erreurs critiques : retry
                             if error_code == -32700 or error_code < 0:
-                                logging.warning(f"{operation_name} attempt {attempt + 1} failed with error {error_code}: {error_msg}")
+                                if verbose:
+                                    print(f"WARNING: {operation_name} attempt {attempt + 1} failed with error {error_code}: {error_msg}", file=sys.stderr)
                                 if attempt < max_retries - 1:
                                     delay = base_delay * (2 ** attempt)
-                                    logging.warning(f"Retrying {operation_name} in {delay}s...")
+                                    if verbose:
+                                        print(f"WARNING: Retrying {operation_name} in {delay}s...", file=sys.stderr)
                                     time.sleep(delay)
                                     continue
                         elif 'result' in first_result:
@@ -151,14 +155,17 @@ def execute_with_retry(
             # Échec de validation : retry
             if attempt < max_retries - 1:
                 delay = base_delay * (2 ** attempt)
-                logging.warning(f"{operation_name} attempt {attempt + 1} failed validation, retrying in {delay}s...")
+                if verbose:
+                    print(f"WARNING: {operation_name} attempt {attempt + 1} failed validation, retrying in {delay}s...", file=sys.stderr)
                 time.sleep(delay)
 
         except Exception as e:
-            logging.error(f"{operation_name} attempt {attempt + 1} raised exception: {e}")
+            if verbose:
+                print(f"ERROR: {operation_name} attempt {attempt + 1} raised exception: {e}", file=sys.stderr)
             if attempt < max_retries - 1:
                 delay = base_delay * (2 ** attempt)
-                logging.warning(f"Retrying {operation_name} in {delay}s...")
+                if verbose:
+                    print(f"WARNING: Retrying {operation_name} in {delay}s...", file=sys.stderr)
                 time.sleep(delay)
             else:
                 # Dernière tentative : laisser l'exception remonter
@@ -221,13 +228,15 @@ def get_single_value(args: argparse.Namespace, field_name: str, source: str = "b
         return False
 
     # Utiliser le système de retry intelligent avec timeout progressif
+    verbose = getattr(args, 'verbose', False)
     results = execute_with_retry(
         operation_func=fetch_data,
         operation_name=f"get-{field_name}",
         max_retries=max_retries,
         base_delay=1.0,
         base_timeout=args.timeout,
-        validation_func=validate_result
+        validation_func=validate_result,
+        verbose=verbose
     )
 
     # Extract the field value
@@ -253,6 +262,7 @@ def execute_command(args: argparse.Namespace) -> List[Any]:
         local_bind = (host, int(port_str))
 
     max_retries = getattr(args, 'command_retries', 3)
+    verbose = getattr(args, 'verbose', False)
 
     # Logique pour la commande par défaut: all-status (le plus pertinent pour Jeedom)
     if args.cmd == "all-status":
@@ -280,7 +290,8 @@ def execute_command(args: argparse.Namespace) -> List[Any]:
             operation_name="all-status",
             max_retries=max_retries,
             base_delay=1.0,
-            base_timeout=args.timeout
+            base_timeout=args.timeout,
+            verbose=verbose
         )
 
     # Pour les commandes simples d'état (GET) - Pour VenusE 3.0
@@ -297,7 +308,8 @@ def execute_command(args: argparse.Namespace) -> List[Any]:
             operation_name="es-mode",
             max_retries=max_retries,
             base_delay=1.0,
-            base_timeout=args.timeout
+            base_timeout=args.timeout,
+            verbose=verbose
         )
 
     elif args.cmd == "bat-status":
@@ -313,7 +325,8 @@ def execute_command(args: argparse.Namespace) -> List[Any]:
             operation_name="bat-status",
             max_retries=max_retries,
             base_delay=1.0,
-            base_timeout=args.timeout
+            base_timeout=args.timeout,
+            verbose=verbose
         )
 
     # Commandes GET individuelles pour Jeedom (retourne une valeur unique)
@@ -404,7 +417,8 @@ def execute_command(args: argparse.Namespace) -> List[Any]:
             if attempt < max_command_retries - 1:
                 # Tempo progressive : 2s, 4s, 8s...
                 delay = base_delay * (2 ** attempt)
-                logging.warning(f"set-es-mode attempt {attempt + 1} failed, retrying in {delay}s...")
+                if verbose:
+                    print(f"WARNING: set-es-mode attempt {attempt + 1} failed, retrying in {delay}s...", file=sys.stderr)
                 time.sleep(delay)
 
         # Si toutes les tentatives échouent, retourner le dernier résultat
@@ -424,6 +438,7 @@ def cli():
     p.add_argument("--retries", type=int, default=2, help="Number of retries for network operations (default: 2)")
     p.add_argument("--command-retries", type=int, default=3, dest="command_retries", help="Number of command retry attempts for set-es-mode with progressive delay (default: 3)")
     p.add_argument("--bind", default=None, help="Bind to local ip:port (e.g. 0.0.0.0:30000)")
+    p.add_argument("--verbose", action="store_true", help="Show retry warnings and debug information (useful for troubleshooting)")
 
     sub = p.add_subparsers(dest="cmd", required=False)
 
