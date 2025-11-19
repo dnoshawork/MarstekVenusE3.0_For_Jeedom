@@ -360,6 +360,32 @@ Pour mettre à jour automatiquement les valeurs toutes les 5 minutes :
 2. Programmation : `*/5 * * * *` (toutes les 5 minutes)
 3. Actions : Rafraîchir toutes vos commandes Info
 
+### Scénario Jeedom d'Optimisation Tarifaire (EDF Tempo)
+
+Un **scénario avancé** de gestion énergétique est disponible pour optimiser automatiquement la charge de la batterie en fonction :
+- **Tarif EDF Tempo** (Jours Rouges/Blancs/Bleus)
+- **Prévisions météorologiques** (production solaire attendue)
+- **Heures Creuses** (déclenchement de la charge entre 01h00 et 05h45)
+
+#### Principe de fonctionnement
+
+Le scénario utilise un algorithme de **"Smart Charging"** qui :
+1. **Analyse** la couleur Tempo du jour suivant et les prévisions météo
+2. **Détermine** un SOC cible optimal (0% à 100%) pour la fin des heures creuses
+3. **Calcule dynamiquement** la puissance de charge minimale nécessaire toutes les 15 minutes
+4. **Optimise** le rendement en évitant les charges à faible puissance
+5. **Repasse automatiquement** en mode Autoconsommation à 5h45
+
+**Exemples de stratégie :**
+- **Jour Rouge** : Charge à 100% (éviter les tarifs élevés)
+- **Jour Blanc + Nuageux** : Charge à 100% (faible production solaire prévue)
+- **Jour Blanc + Ensoleillé** : Charge à 30% (le solaire complétera)
+- **Jour Bleu** : Charge à 0% (tarif faible, priorité au solaire)
+
+📄 **Documentation complète** : Voir [JEEDOM Scenario.md](JEEDOM%20Scenario.md) pour l'algorithme détaillé et l'implémentation pas à pas.
+
+📸 **Captures d'écran** : Consultez le dossier `Jeedom captures/` pour voir la configuration complète dans l'interface Jeedom.
+
 ### Méthode 2 : Parsing JSON (alternative)
 
 Si vous préférez récupérer toutes les données en une seule fois et parser le JSON :

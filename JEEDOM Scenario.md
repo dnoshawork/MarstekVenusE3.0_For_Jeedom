@@ -56,9 +56,19 @@ Où :
 
 Cette section détaille l'intégralité du scénario, incluant la logique de décision initiale puis le calcul de charge.
 
-**Déclencheur :** Programmé \*/15 1-5 \* \* \* (Toutes les 15 min entre 01h00 et 05h45).
+**Déclencheur :** Programmé \*/15 1-5 \* \* \* (Toutes les 15 min entre 01h00 et 05h45) + Une fois à 05h45.
+
+**Partie 0 : Vérification de l'heure (Retour Auto à 5h45)**
+
+| Type | Condition | Action / Valeur |
+| --- | --- | --- |
+| SI  | #time# >= 0545 | _Fin de la période HC, retour en mode Auto_ |
+| &nbsp; ALORS | [Commande Batterie] | set-es-mode Auto |
+| &nbsp; ALORS | STOP | _Arrêt du scénario_ |
 
 **Partie 1 : Définition de la Cible (Matrice de décision)**
+
+_(Cette partie s'exécute uniquement si #time# < 0545)_
 
 | Type | Condition | Action / Valeur |
 | --- | --- | --- |
